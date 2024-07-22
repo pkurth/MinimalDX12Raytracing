@@ -14,7 +14,7 @@ Mesh create_cube_mesh(Arena& arena)
 	vec3 y = vec3(0.f, 1.f, 0.f);
 	vec3 z = vec3(0.f, 0.f, 1.f);
 
-	vec3 vertex_positions[] =
+	const vec3 vertex_positions[] =
 	{
 		- x - y + z,
 		  x - y + z,
@@ -42,7 +42,7 @@ Mesh create_cube_mesh(Arena& arena)
 		  x - y + z,
 	};
 
-	VertexAttribute vertex_attributes[] =
+	const VertexAttribute vertex_attributes[] =
 	{
 		 {  z, vec2(0.f, 0.f) },
 		 {  z, vec2(1.f, 0.f) },
@@ -70,7 +70,7 @@ Mesh create_cube_mesh(Arena& arena)
 		 { -y, vec2(1.f, 1.f) },
 	};
 
-	IndexedTriangle16 triangles[] =
+	const IndexedTriangle16 triangles[] =
 	{
 		{  0,  1,  2 },
 		{  1,  3,  2 },
@@ -88,11 +88,11 @@ Mesh create_cube_mesh(Arena& arena)
 
 	DXVertexBufferGroup vertex_buffer =
 	{
-		DXVertexBuffer(create_buffer(Range<vec3>{vertex_positions, arraysize(vertex_positions)}, false, L"Cube vertex positions")),
-		DXVertexBuffer(create_buffer(Range<VertexAttribute>{vertex_attributes, arraysize(vertex_attributes)}, false, L"Cube vertex attributes")),
+		DXVertexBuffer(create_buffer(Range(vertex_positions), false, L"Cube vertex positions")),
+		DXVertexBuffer(create_buffer(Range(vertex_attributes), false, L"Cube vertex attributes")),
 	};
 
-	DXIndexBuffer index_buffer = create_buffer(Range<IndexedTriangle16>{triangles, arraysize(triangles)}.cast<u16>(), false, L"Cube indices");
+	DXIndexBuffer index_buffer = create_buffer(Range(triangles).cast<u16>(), false, L"Cube indices");
 
 	Range<Submesh> submeshes = arena.allocate_range<Submesh>(1);
 	submeshes[0].first_index = 0;

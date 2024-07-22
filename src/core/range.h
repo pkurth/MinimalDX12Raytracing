@@ -22,6 +22,13 @@ template <typename T> inline bool operator!=(const RangeIterator<T>& a, const Ra
 template <typename T>
 struct Range
 {
+	Range() = default;
+	Range(T* first, u64 count) : first(first), count(count) {}
+	Range(std::vector<T>& vector) : first(&vector.front()), count(vector.size()) {}
+
+	template <u64 size>
+	Range(T(&arr)[size]) : first(arr), count(size) {}
+
 	T* first = nullptr;
 	u64 count = 0;
 
