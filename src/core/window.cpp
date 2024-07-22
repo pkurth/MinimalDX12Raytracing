@@ -1,8 +1,9 @@
 #include "window.h"
 
+#include <Windowsx.h>
 
 
-static LRESULT CALLBACK window_callback(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+static LRESULT CALLBACK window_callback(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param);
 
 Window::Window(const TCHAR* name, u32 client_width, u32 client_height)
 {
@@ -95,8 +96,23 @@ void Window::operator=(Window&& o) noexcept
 	}
 }
 
-bool Window::begin_frame()
+bool Window::begin_frame(Input& input)
 {
+	mouse_click_callback = [&](MouseButton mouse_button, bool down, i32 mouse_x, i32 mouse_y)
+	{
+		input.current.set_mouse_down(mouse_button, down);
+	};
+	mouse_move_callback = [&](i32 mouse_x, i32 mouse_y)
+	{
+		input.current.set_mouse_position(mouse_x, mouse_y);
+	};
+	mouse_scroll_callback = [&](float scroll)
+	{
+		input.current.set_scroll(scroll);
+	};
+
+	input.begin_frame();
+
 	MSG msg = { 0 };
 	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 	{
@@ -108,6 +124,10 @@ bool Window::begin_frame()
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+
+	mouse_click_callback = {};
+	mouse_move_callback = {};
+	mouse_scroll_callback = {};
 
 	return initialized();
 }
@@ -156,11 +176,49 @@ void Window::set_fullscreen(bool fullscreen)
 
 
 
-static LRESULT CALLBACK window_callback(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK window_callback(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 {
 	LRESULT result = 0;
 
 	Window* window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
+	auto handle_mouse_click = [window](MouseButton button, bool down, LPARAM l_param)
+	{
+		if (window && window->initialized() && window->mouse_click_callback)
+		{
+			i32 x = GET_X_LPARAM(l_param);
+			i32 y = GET_Y_LPARAM(l_param);
+			window->mouse_click_callback(button, down, x, y);
+
+			if (down)
+			{
+				SetCapture(window->window_handle);
+			}
+			else
+			{
+				ReleaseCapture();
+			}
+		}
+	};
+
+	auto handle_mouse_move = [window](LPARAM l_param)
+	{
+		if (window && window->initialized() && window->mouse_move_callback)
+		{
+			i32 x = GET_X_LPARAM(l_param);
+			i32 y = GET_Y_LPARAM(l_param);
+			window->mouse_move_callback(x, y);
+		}
+	};
+
+	auto handle_mouse_scroll = [window](WPARAM w_param)
+	{
+		if (window && window->initialized() && window->mouse_scroll_callback)
+		{
+			float scroll = GET_WHEEL_DELTA_WPARAM(w_param) / WHEEL_DELTA;
+			window->mouse_scroll_callback(scroll);
+		}
+	};
 
 	switch (msg)
 	{
@@ -173,8 +231,8 @@ static LRESULT CALLBACK window_callback(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		{
 			if (window && window->initialized())
 			{
-				window->client_width = LOWORD(lParam);
-				window->client_height = HIWORD(lParam);
+				window->client_width = LOWORD(l_param);
+				window->client_height = HIWORD(l_param);
 				window->on_resize();
 			}
 		} break;
@@ -189,9 +247,45 @@ static LRESULT CALLBACK window_callback(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 				window->window_handle = 0;
 			}
 		} break;
+
+		case WM_LBUTTONDOWN:
+		{
+			handle_mouse_click(MouseButton::Left, true, l_param);
+		} break;
+		case WM_LBUTTONUP:
+		{
+			handle_mouse_click(MouseButton::Left, false, l_param);
+		} break;
+		case WM_RBUTTONDOWN:
+		{
+			handle_mouse_click(MouseButton::Right, true, l_param);
+		} break;
+		case WM_RBUTTONUP:
+		{
+			handle_mouse_click(MouseButton::Right, false, l_param);
+		} break;
+		case WM_MBUTTONDOWN:
+		{
+			handle_mouse_click(MouseButton::Middle, true, l_param);
+		} break;
+		case WM_MBUTTONUP:
+		{
+			handle_mouse_click(MouseButton::Middle, false, l_param);
+		} break;
+
+		case WM_MOUSEMOVE:
+		{
+			handle_mouse_move(l_param);
+		} break;
+
+		case WM_MOUSEWHEEL:
+		{
+			handle_mouse_scroll(w_param);
+		} break;
+
 		default:
 		{
-			result = DefWindowProc(hwnd, msg, wParam, lParam);
+			result = DefWindowProc(hwnd, msg, w_param, l_param);
 		} break;
 	}
 

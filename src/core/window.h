@@ -1,6 +1,9 @@
 #pragma once
 
 #include "common.h"
+#include "input.h"
+
+#include <functional>
 
 struct Window
 {
@@ -13,7 +16,7 @@ struct Window
 	void operator=(Window&& o) noexcept;
 
 	bool initialized() const { return window_handle != 0; }
-	bool begin_frame();
+	bool begin_frame(Input& input);
 
 	void set_fullscreen(bool fullscreen);
 
@@ -27,5 +30,18 @@ struct Window
 	u32 client_height;
 
 	bool fullscreen = false;
+
+
+private:
 	WINDOWPLACEMENT window_placement;
+
+	using MouseClickCallback = std::function<void(MouseButton mouse_button, bool down, i32 mouse_x, i32 mouse_y)>;
+	using MouseMoveCallback = std::function<void(i32 mouse_x, i32 mouse_y)>;
+	using MouseScrollCallback = std::function<void(float scroll)>;
+
+	MouseClickCallback mouse_click_callback;
+	MouseMoveCallback mouse_move_callback;
+	MouseScrollCallback mouse_scroll_callback;
+
+	friend static LRESULT CALLBACK window_callback(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param);
 };

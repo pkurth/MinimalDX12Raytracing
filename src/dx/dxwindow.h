@@ -13,7 +13,7 @@ struct DXWindow : Window
 
 	void set_vsync(bool vsync) { this->vsync = vsync; }
 
-	bool begin_frame();
+	bool begin_frame(Input& input);
 	void end_frame(u64 fence);
 
 	u64 blit_to_screen(const DXResource& image);

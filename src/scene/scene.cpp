@@ -15,11 +15,16 @@ void Scene::build()
 	build_tlas();
 }
 
+void Scene::update(const Input& input, u32 render_width, u32 render_height, float dt)
+{
+	camera.update(input, render_width, render_height, dt);
+}
+
 std::shared_ptr<DXTexture> Scene::render(u32 render_width, u32 render_height)
 {
 	RenderParams params;
-	params.camera_position = vec3(0.f, 0.f, 7.f);
-	params.camera_rotation = quat::identity;
+	params.camera_position = camera.position();
+	params.camera_rotation = camera.rotation;
 	params.light_color = vec3(1.f, 1.f, 1.f);
 	params.light_direction = normalize(vec3(-1.f, -1.f, -1.f));
 	params.sky_color = vec3(0.62f, 0.75f, 0.88f);
@@ -87,4 +92,33 @@ void Scene::build_tlas()
 	}
 
 	create_raytracing_tlas(tlas, instance_descs);
+}
+
+void Camera::update(const Input& input, u32 viewport_width, u32 viewport_height, float dt)
+{
+	const float CAMERA_MOVEMENT_SPEED = 3.f;
+	const float CAMERA_SENSITIVITY = 4.f;
+
+	float aspect = (float)viewport_width / (float)viewport_height;
+
+	vec2 rel_mouse_delta = input.mouse_delta() / vec2((float)viewport_width, (float)viewport_height);
+
+	if (input.mouse_scroll() != 0.f)
+	{
+		orbit_radius -= input.mouse_scroll();
+	}
+
+	if (input.is_mouse_down(MouseButton::Left))
+	{
+		vec2 angle = -rel_mouse_delta * CAMERA_SENSITIVITY;
+
+		// https://gamedev.stackexchange.com/questions/136174/im-rotating-an-object-on-two-axes-so-why-does-it-keep-twisting-around-the-thir
+		rotation = quat(vec3(0.f, 1.f, 0.f), angle.x) * rotation * quat(vec3(1.f, 0.f, 0.f), angle.y);
+		rotation = normalize(rotation);
+	}
+	else if (input.is_mouse_down(MouseButton::Right))
+	{
+		vec3 direction = vec3(-rel_mouse_delta.x * aspect, rel_mouse_delta.y, 0.f) * 1000.f * CAMERA_MOVEMENT_SPEED;
+		center += rotation * direction * dt;
+	}
 }

@@ -13,7 +13,7 @@ struct DXContext
 	DXContext();
 	~DXContext();
 
-	void begin_frame();
+	float begin_frame();
 	void flush();
 
 	DXCommandList* get_free_render_command_list();
@@ -67,6 +67,8 @@ private:
 
 	std::thread command_list_cleanup_thread;
 	HANDLE end_event;
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> last_timepoint;
 };
 
 extern DXContext dx_context;

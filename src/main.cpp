@@ -1,12 +1,15 @@
 #include "dx/dxwindow.h"
 #include "dx/context.h"
 
+#include "core/input.h"
+
 #include "scene/scene.h"
 
 i32 main(i32 argc, char** argv)
 {
 	DXWindow window(TEXT("Minimal DX"), 1280, 720);
 	window.set_vsync(true);
+
 
 	
 	Arena asset_arena;
@@ -22,10 +25,13 @@ i32 main(i32 argc, char** argv)
 	scene.build();
 
 
-	while (window.begin_frame())
+	Input input = {};
+	while (window.begin_frame(input))
 	{
-		dx_context.begin_frame();
+		float dt = dx_context.begin_frame();
 		
+		scene.update(input, window.client_width, window.client_height, dt);
+
 		std::shared_ptr<DXTexture> rendered_scene = scene.render(window.client_width, window.client_height);
 		
 		u64 fence = window.blit_to_screen(rendered_scene);
