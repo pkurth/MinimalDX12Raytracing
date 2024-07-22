@@ -25,10 +25,10 @@ i32 main(i32 argc, char** argv)
 	while (window.begin_frame())
 	{
 		dx_context.begin_frame();
-
+		
 		std::shared_ptr<DXTexture> rendered_scene = scene.render(window.client_width, window.client_height);
-
-		u64 fence = window.blit_to_screen(rendered_scene->resource);
+		
+		u64 fence = window.blit_to_screen(rendered_scene);
 		window.end_frame(fence);
 	}
 

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "core/window.h"
+
 #include "dx.h"
+#include "texture.h"
 
 
 struct DXWindow : Window
@@ -15,6 +17,7 @@ struct DXWindow : Window
 	void end_frame(u64 fence);
 
 	u64 blit_to_screen(const DXResource& image);
+	u64 blit_to_screen(std::shared_ptr<DXTexture> image);
 
 	CD3DX12_VIEWPORT get_viewport();
 

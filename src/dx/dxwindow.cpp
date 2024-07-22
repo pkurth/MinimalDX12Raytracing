@@ -123,11 +123,16 @@ u64 DXWindow::blit_to_screen(const DXResource& image)
 	DXResource backbuffer = backbuffers[current_backbuffer_index];
 
 	DXCommandList* cl = dx_context.get_free_render_command_list();
-	cl->transition(backbuffer, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+	//cl->transition(backbuffer, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_COPY_DEST);
 	cl->copy_resource(image, backbuffer);
 	cl->transition(backbuffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PRESENT);
 	u64 fence = dx_context.execute_command_list(cl);
 	return fence;
+}
+
+u64 DXWindow::blit_to_screen(std::shared_ptr<DXTexture> image)
+{
+	return blit_to_screen(image->resource);
 }
 
 CD3DX12_VIEWPORT DXWindow::get_viewport()

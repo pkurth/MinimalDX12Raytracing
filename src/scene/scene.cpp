@@ -32,16 +32,14 @@ void Scene::build_binding_table()
 	ArenaMarker marker(temp_arena);
 
 
-	constexpr u32 renderer_resource_count = sizeof(RendererGlobalResources) / sizeof(CD3DX12_CPU_DESCRIPTOR_HANDLE);
-
 	descriptor_heap.initialize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, true, 1024); // TODO: Capacity
-	// Push space for global resources
-	descriptor_heap.allocate(renderer_resource_count * NUM_BUFFERED_FRAMES);
+	descriptor_heap.allocate(renderer.reserved_descriptor_heap_space());
+
 
 	const DXRaytracingBindingTableDesc& binding_table_desc = renderer.get_pipeline().binding_table_desc;
-	Range<RendererPerObjectResources> data_for_all_hitgroups = temp_arena.allocate_range<RendererPerObjectResources>(binding_table_desc.hitgroup_count);
+	Range<PerObjectRenderResources> data_for_all_hitgroups = temp_arena.allocate_range<PerObjectRenderResources>(binding_table_desc.hitgroup_count);
 
-	DXRaytracingBindingTableBuilder<RendererPerObjectResources> binding_table_builder(binding_table_desc);
+	DXRaytracingBindingTableBuilder<PerObjectRenderResources> binding_table_builder(binding_table_desc);
 	for (SceneObject& obj : objects)
 	{
 		for (auto [submesh, submesh_index] : obj.mesh.submeshes)

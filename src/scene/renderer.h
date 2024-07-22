@@ -4,15 +4,6 @@
 #include "dx/raytracing.h"
 #include "dx/command_list.h"
 
-struct RendererGlobalResources
-{
-	// Input
-	CD3DX12_CPU_DESCRIPTOR_HANDLE tlas;
-
-	// Output
-	CD3DX12_CPU_DESCRIPTOR_HANDLE render_output;
-};
-
 struct RenderMaterial
 {
 	vec3 color;
@@ -29,7 +20,7 @@ struct ShadowHitgroupResources
 	// Shadow needs no resources currently
 };
 
-union RendererPerObjectResources
+union PerObjectRenderResources
 {
 	// This is a union, not a struct. One entry is as large as the largest hitgroup.
 	RadianceHitgroupResources radiance;
@@ -56,7 +47,12 @@ struct Renderer
 
 	const DXRaytracingPipeline& get_pipeline() const { return pipeline; }
 
+	static u32 reserved_descriptor_heap_space();
+
 private:
+
+	CD3DX12_GPU_DESCRIPTOR_HANDLE create_global_descriptors(const DXDescriptorHeap& descriptor_heap, const DXRaytracingTLAS& tlas);
+
 	DXRaytracingPipeline pipeline;
 	std::shared_ptr<DXTexture> render_target;
 };

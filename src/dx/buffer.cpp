@@ -67,13 +67,14 @@ static void upload_buffer_data(std::shared_ptr<DXBuffer> buffer, D3D12_SUBRESOUR
 
 
 	DXCommandList* cl = dx_context.get_free_copy_command_list();
-	cl->transition(buffer, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
-	UpdateSubresources(cl->cl.Get(), buffer->resource.Get(), intermediate.Get(), 0, 0, 1, &subresources);
+	//cl->transition(buffer, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+	UpdateSubresources<1>(cl->cl.Get(), buffer->resource.Get(), intermediate.Get(), 0, 0, 1, &subresources);
+
 
 	// We are omitting the transition to common here, since the resource automatically decays to common state after being accessed on a copy queue.
+	//cl->transition(buffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
 	
 	u64 fence_value = dx_context.execute_command_list(cl);
-
 	dx_context.keep_copy_resource_alive(fence_value, intermediate);
 }
 

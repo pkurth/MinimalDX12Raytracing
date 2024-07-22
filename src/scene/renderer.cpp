@@ -13,15 +13,45 @@ struct Constants
 	float padding2;
 };
 
+
 #define ROOT_CONSTANTS		0
 #define ROOT_DESCRIPTORS	1
 
+
+
+// Resources which are available to all stages of the raytracing shader.
+// This typically includes the TLAS, the render output and resources like the skybox.
+
+struct GlobalRenderInputs
+{
+	CD3DX12_CPU_DESCRIPTOR_HANDLE tlas;
+
+	void create_descriptors(const DXRaytracingTLAS& tlas)
+	{
+		create_raytracing_buffer_srv(this->tlas, tlas.tlas->resource);
+	}
+};
+
+struct GlobalRenderOutputs
+{
+	CD3DX12_CPU_DESCRIPTOR_HANDLE render_output;
+
+	void create_descriptors(std::shared_ptr<DXTexture> render_output)
+	{
+		create_2d_texture_uav(this->render_output, render_output->resource, 0);
+	}
+};
+
+
 Renderer::Renderer()
 {
+	constexpr u32 global_inputs = sizeof(GlobalRenderInputs) / sizeof(CD3DX12_CPU_DESCRIPTOR_HANDLE);
+	constexpr u32 global_outputs = sizeof(GlobalRenderOutputs) / sizeof(CD3DX12_CPU_DESCRIPTOR_HANDLE);
+
 	CD3DX12_DESCRIPTOR_RANGE global_resource_ranges[] =
 	{
-		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0),
-		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0),
+		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, global_inputs, 0),
+		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, global_outputs, 0),
 	};
 
 	CD3DX12_ROOT_PARAMETER global_root_parameters[] =
@@ -94,15 +124,7 @@ std::shared_ptr<DXTexture> Renderer::render(const DXRaytracingTLAS& tlas, const 
 	raytrace_desc.CallableShaderTable = {};
 
 
-
-	constexpr u32 total_count = sizeof(RendererGlobalResources) / sizeof(CD3DX12_CPU_DESCRIPTOR_HANDLE);
-
-	CD3DX12_CPU_DESCRIPTOR_HANDLE cpu_base(descriptor_heap.cpu_base, total_count * dx_context.wrapping_frame_id(), descriptor_heap.descriptor_size);
-	CD3DX12_GPU_DESCRIPTOR_HANDLE gpu_base(descriptor_heap.gpu_base, total_count * dx_context.wrapping_frame_id(), descriptor_heap.descriptor_size);
-
-	create_raytracing_buffer_srv(CD3DX12_CPU_DESCRIPTOR_HANDLE(cpu_base, 0, descriptor_heap.descriptor_size), tlas.tlas->resource);
-	create_2d_texture_uav(CD3DX12_CPU_DESCRIPTOR_HANDLE(cpu_base, 1, descriptor_heap.descriptor_size), render_target->resource, 0);
-
+	CD3DX12_GPU_DESCRIPTOR_HANDLE gpu_base = create_global_descriptors(descriptor_heap, tlas);
 
 	Constants constants;
 	constants.camera_transform = create_model_matrix(params.camera_position, params.camera_rotation);
@@ -127,4 +149,40 @@ std::shared_ptr<DXTexture> Renderer::render(const DXRaytracingTLAS& tlas, const 
 	dx_context.execute_command_list(cl);
 
 	return render_target;
+}
+
+
+
+
+static constexpr u32 global_resource_count = (sizeof(GlobalRenderInputs) + sizeof(GlobalRenderOutputs)) / sizeof(CD3DX12_CPU_DESCRIPTOR_HANDLE);
+
+u32 Renderer::reserved_descriptor_heap_space()
+{
+	return global_resource_count * NUM_BUFFERED_FRAMES;
+}
+
+CD3DX12_GPU_DESCRIPTOR_HANDLE Renderer::create_global_descriptors(const DXDescriptorHeap& descriptor_heap, const DXRaytracingTLAS& tlas)
+{
+	union
+	{
+		struct
+		{
+			GlobalRenderInputs inputs;
+			GlobalRenderOutputs outputs;
+		};
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handles[global_resource_count];
+	};
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE cpu_base(descriptor_heap.cpu_base, global_resource_count * dx_context.wrapping_frame_id(), descriptor_heap.descriptor_size);
+	CD3DX12_GPU_DESCRIPTOR_HANDLE gpu_base(descriptor_heap.gpu_base, global_resource_count * dx_context.wrapping_frame_id(), descriptor_heap.descriptor_size);
+
+	for (u32 i = 0; i < global_resource_count; ++i)
+	{
+		handles[i].InitOffsetted(cpu_base, i, descriptor_heap.descriptor_size);
+	}
+
+	inputs.create_descriptors(tlas);
+	outputs.create_descriptors(render_target);
+
+	return gpu_base;
 }
