@@ -75,13 +75,10 @@ void Scene::build_tlas()
 
 	u32 instance_contribution_to_hitgroup_index = 0;
 
-	u32 obj_index = 0;
-	for (SceneObject& obj : objects)
+	for (auto [obj, obj_index] : Range(objects))
 	{
 		instance_descs[obj_index] = create_raytracing_instance_desc(obj.mesh.blas, obj.transform, instance_contribution_to_hitgroup_index);
 		instance_contribution_to_hitgroup_index += (u32)obj.mesh.submeshes.count * binding_table_desc.hitgroup_count;
-
-		++obj_index;
 	}
 
 	create_raytracing_tlas(tlas, instance_descs);
