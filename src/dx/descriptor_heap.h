@@ -28,9 +28,9 @@ struct DXDescriptorRange
 
 struct DXDescriptorHeap
 {
-	void initialize(D3D12_DESCRIPTOR_HEAP_TYPE type, bool shader_visible, u32 capacity);
+	void initialize(D3D12_DESCRIPTOR_HEAP_TYPE type, bool shader_visible, u64 capacity);
 
-	DXDescriptorAllocation allocate(u32 count = 1);
+	DXDescriptorAllocation allocate(u64 count = 1);
 
 	D3D12_DESCRIPTOR_HEAP_TYPE type;
 	com<ID3D12DescriptorHeap> heap;
@@ -43,7 +43,8 @@ struct DXDescriptorHeap
 
 private:
 
-	u32 current = 0;
+	u64 capacity = 0;
+	u64 current = 0;
 
 	std::mutex mutex;
 };

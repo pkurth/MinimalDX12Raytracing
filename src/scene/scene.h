@@ -23,8 +23,9 @@ struct Scene
 
 	std::shared_ptr<DXTexture> render(u32 render_width, u32 render_height);
 
-
 private:
+
+	u64 total_submesh_count();
 
 	void build_binding_table();
 	void build_tlas();

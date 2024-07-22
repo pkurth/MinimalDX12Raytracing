@@ -15,7 +15,20 @@ DXRootSignature create_root_signature(const D3D12_ROOT_SIGNATURE_DESC& desc);
 struct DXRootDescriptorTable : CD3DX12_ROOT_PARAMETER
 {
 	DXRootDescriptorTable(u32 descriptor_range_count,
-		const D3D12_DESCRIPTOR_RANGE* descriptor_ranges,
+		const CD3DX12_DESCRIPTOR_RANGE* descriptor_ranges,
+		D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL)
+	{
+		InitAsDescriptorTable(descriptor_range_count, descriptor_ranges, visibility);
+	}
+
+	DXRootDescriptorTable(const CD3DX12_DESCRIPTOR_RANGE& descriptor_range,
+		D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL)
+	{
+		InitAsDescriptorTable(1, &descriptor_range, visibility);
+	}
+
+	template <u32 descriptor_range_count>
+	DXRootDescriptorTable(CD3DX12_DESCRIPTOR_RANGE(&descriptor_ranges)[descriptor_range_count],
 		D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL)
 	{
 		InitAsDescriptorTable(descriptor_range_count, descriptor_ranges, visibility);

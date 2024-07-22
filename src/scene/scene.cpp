@@ -27,12 +27,23 @@ std::shared_ptr<DXTexture> Scene::render(u32 render_width, u32 render_height)
 	return renderer.render(tlas, binding_table, descriptor_heap, params, render_width, render_height);
 }
 
+u64 Scene::total_submesh_count()
+{
+	u64 total_submesh_count = 0;
+	for (SceneObject& obj : objects)
+	{
+		total_submesh_count += obj.mesh.submeshes.count;
+	}
+	return total_submesh_count;
+}
+
 void Scene::build_binding_table()
 {
 	ArenaMarker marker(temp_arena);
 
 
-	descriptor_heap.initialize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, true, 1024); // TODO: Capacity
+	// Allocate descriptor heap and reserve space needed by the renderer
+	descriptor_heap.initialize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, true, renderer.total_descriptor_heap_space(total_submesh_count()));
 	descriptor_heap.allocate(renderer.reserved_descriptor_heap_space());
 
 
@@ -44,17 +55,10 @@ void Scene::build_binding_table()
 	{
 		for (auto [submesh, submesh_index] : obj.mesh.submeshes)
 		{
-			DXDescriptorAllocation descriptors = descriptor_heap.allocate(2);
-			create_buffer_srv(descriptors.cpu_at(0), obj.mesh.vertex_buffer.vertex_attributes.buffer->resource, BufferRange{ submesh.base_vertex, submesh.vertex_count, obj.mesh.vertex_buffer.vertex_attributes.buffer->element_size });
-			create_raw_buffer_srv(descriptors.cpu_at(1), obj.mesh.index_buffer.buffer->resource, BufferRange{ submesh.first_index, submesh.index_count, obj.mesh.index_buffer.buffer->element_size });
+			// Let renderer initialize the required data
+			renderer.setup_hitgroup(data_for_all_hitgroups, descriptor_heap, obj.mesh, submesh, obj.color);
 
-			RadianceHitgroupResources& radiance = data_for_all_hitgroups[0].radiance;
-			radiance.material.color = obj.color;
-			radiance.descriptors = descriptors.gpu_base;
-
-			ShadowHitgroupResources& shadow = data_for_all_hitgroups[1].shadow;
-			// Shadow needs no resources currently
-
+			// Create binding table entry for this subobject
 			binding_table_builder.push(data_for_all_hitgroups);
 		}
 	}
@@ -75,7 +79,10 @@ void Scene::build_tlas()
 
 	for (auto [obj, obj_index] : Range(objects))
 	{
+		// Instantiate object in TLAS
 		instance_descs[obj_index] = create_raytracing_instance_desc(obj.mesh.blas, obj.transform, instance_contribution_to_hitgroup_index);
+
+		// Adjust the index to the next object. Since each submesh has an entry for each hitgroup, we need to advance by the product of the two.
 		instance_contribution_to_hitgroup_index += (u32)obj.mesh.submeshes.count * binding_table_desc.hitgroup_count;
 	}
 
