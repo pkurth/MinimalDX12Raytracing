@@ -196,7 +196,7 @@ static void upload_texture_data(std::shared_ptr<DXTexture> texture, D3D12_SUBRES
 	dx_context.keep_copy_resource_alive(fence_value, intermediate);
 }
 
-std::shared_ptr<DXTexture> create_texture_from_data(void* data, u32 width, u32 height, DXGI_FORMAT format, bool allow_unordered_access, const TCHAR* name)
+std::shared_ptr<DXTexture> create_texture(void* data, u32 width, u32 height, DXGI_FORMAT format, bool allow_unordered_access, const TCHAR* name)
 {
 	D3D12_RESOURCE_FLAGS flags = allow_unordered_access ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height, 1, 1, 1, 0, flags);

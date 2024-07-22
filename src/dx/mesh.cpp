@@ -14,7 +14,7 @@ Mesh create_cube_mesh(Arena& arena)
 	vec3 y = vec3(0.f, 1.f, 0.f);
 	vec3 z = vec3(0.f, 0.f, 1.f);
 
-	const vec3 vertex_positions[] =
+	vec3 vertex_positions[] =
 	{
 		- x - y + z,
 		  x - y + z,
@@ -42,7 +42,7 @@ Mesh create_cube_mesh(Arena& arena)
 		  x - y + z,
 	};
 
-	const VertexAttribute vertex_attributes[] =
+	VertexAttribute vertex_attributes[] =
 	{
 		 {  z, vec2(0.f, 0.f) },
 		 {  z, vec2(1.f, 0.f) },
@@ -70,7 +70,7 @@ Mesh create_cube_mesh(Arena& arena)
 		 { -y, vec2(1.f, 1.f) },
 	};
 
-	const IndexedTriangle16 triangles[] =
+	IndexedTriangle16 triangles[] =
 	{
 		{  0,  1,  2 },
 		{  1,  3,  2 },
@@ -88,11 +88,11 @@ Mesh create_cube_mesh(Arena& arena)
 
 	DXVertexBufferGroup vertex_buffer =
 	{
-		DXVertexBuffer(create_buffer(vertex_positions, sizeof(vec3), arraysize(vertex_positions))),
-		DXVertexBuffer(create_buffer(vertex_attributes, sizeof(VertexAttribute), arraysize(vertex_attributes))),
+		DXVertexBuffer(create_buffer(Range<vec3>{vertex_positions, arraysize(vertex_positions)}, false, L"Cube vertex positions")),
+		DXVertexBuffer(create_buffer(Range<VertexAttribute>{vertex_attributes, arraysize(vertex_attributes)}, false, L"Cube vertex attributes")),
 	};
 
-	DXIndexBuffer index_buffer = create_buffer(triangles, sizeof(u16), arraysize(triangles) * 3);
+	DXIndexBuffer index_buffer = create_buffer(Range<IndexedTriangle16>{triangles, arraysize(triangles)}.cast<u16>(), false, L"Cube indices");
 
 	Range<Submesh> submeshes = arena.allocate_range<Submesh>(1);
 	submeshes[0].first_index = 0;
@@ -199,11 +199,11 @@ Mesh create_sphere_mesh(Arena& arena)
 
 		vertex_buffer =
 		{
-			DXVertexBuffer(create_buffer(vertex_positions.first, sizeof(vec3), vertex_positions.count)),
-			DXVertexBuffer(create_buffer(vertex_attributes.first, sizeof(VertexAttribute), vertex_attributes.count)),
+			DXVertexBuffer(create_buffer(vertex_positions, false, L"Sphere vertex positions")),
+			DXVertexBuffer(create_buffer(vertex_attributes, false , L"Sphere vertex attributes")),
 		};
 
-		index_buffer = create_buffer(triangles.first, sizeof(u16), triangles.count * 3);
+		index_buffer = create_buffer(triangles.cast<u16>(), false, L"Sphere indices");
 	}
 
 	Range<Submesh> submeshes = arena.allocate_range<Submesh>(1);

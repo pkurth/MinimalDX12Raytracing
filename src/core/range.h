@@ -29,5 +29,9 @@ struct Range
 
 	RangeIterator<T> begin() { return RangeIterator<T>{first, 0}; }
 	RangeIterator<T> end() { return RangeIterator<T>{first, count}; }
+
+
+	template <typename Other>
+	Range<Other> cast() { return Range<Other>{ (Other*)first, count * sizeof(T) / sizeof(Other) }; }
 };
 

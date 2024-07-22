@@ -194,7 +194,9 @@ inline void DXRaytracingBindingTableBuilder<ShaderData>::push(Range<ShaderData> 
 template<typename ShaderData>
 inline DXRaytracingBindingTable DXRaytracingBindingTableBuilder<ShaderData>::build()
 {
-	std::shared_ptr<DXBuffer> buffer = create_buffer(arena.memory, (u32)max<u64>(1, arena.current), 1, false, D3D12_RESOURCE_STATE_COMMON, L"Raytracing binding table");
+	ASSERT(arena.current > 0);
+
+	std::shared_ptr<DXBuffer> buffer = create_buffer(arena.memory, arena.current, 1, false, L"Raytracing binding table");
 	return DXRaytracingBindingTable{ buffer, entry_count };
 }
 

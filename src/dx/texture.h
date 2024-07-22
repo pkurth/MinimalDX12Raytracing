@@ -14,5 +14,5 @@ struct DXTexture
 	D3D12_RESOURCE_DESC desc;
 };
 
-std::shared_ptr<DXTexture> create_texture_from_data(void* data, u32 width, u32 height, DXGI_FORMAT format, bool allow_unordered_access, const TCHAR* name = nullptr);
+std::shared_ptr<DXTexture> create_texture(void* data, u32 width, u32 height, DXGI_FORMAT format, bool allow_unordered_access, const TCHAR* name = nullptr);
 

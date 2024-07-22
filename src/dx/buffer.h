@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dx.h"
+#include "core/range.h"
 
 struct DXBuffer
 {
@@ -39,5 +40,11 @@ struct DXVertexBufferGroup
 	DXVertexBuffer vertex_attributes; // Uvs, normals, etc.
 };
 
-std::shared_ptr<DXBuffer> create_buffer(const void* data, u64 element_size, u64 element_count, bool allow_unordered_access = false, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_COMMON, const TCHAR* name = nullptr);
-std::shared_ptr<DXBuffer> create_raytracing_tlas_buffer(u64 total_size, D3D12_RESOURCE_STATES initial_state = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, const TCHAR* name = nullptr);
+std::shared_ptr<DXBuffer> create_buffer(const void* data, u64 element_size, u64 element_count, bool allow_unordered_access = false, const TCHAR* name = nullptr);
+std::shared_ptr<DXBuffer> create_raytracing_buffer(u64 total_size, const TCHAR* name = nullptr);
+
+template <typename T>
+inline std::shared_ptr<DXBuffer> create_buffer(const Range<T>& data, bool allow_unordered_access = false, const TCHAR* name = nullptr)
+{
+	return create_buffer(data.first, sizeof(T), data.count, allow_unordered_access, name);
+}

@@ -20,7 +20,7 @@ static DXGI_FORMAT get_index_buffer_format(u64 element_size)
 	return result;
 }
 
-static std::shared_ptr<DXBuffer> allocate_buffer(u64 element_size, u64 element_count, bool allow_unordered_access, D3D12_HEAP_TYPE heap_type, D3D12_RESOURCE_STATES initial_state, const TCHAR* name)
+static std::shared_ptr<DXBuffer> allocate_buffer(u64 element_size, u64 element_count, bool allow_unordered_access, const TCHAR* name, D3D12_HEAP_TYPE heap_type, D3D12_RESOURCE_STATES initial_state)
 {
 	D3D12_RESOURCE_FLAGS flags = allow_unordered_access ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 	auto desc = CD3DX12_RESOURCE_DESC::Buffer(element_size * element_count, flags);
@@ -77,9 +77,9 @@ static void upload_buffer_data(std::shared_ptr<DXBuffer> buffer, D3D12_SUBRESOUR
 	dx_context.keep_copy_resource_alive(fence_value, intermediate);
 }
 
-std::shared_ptr<DXBuffer> create_buffer(const void* data, u64 element_size, u64 element_count, bool allow_unordered_access, D3D12_RESOURCE_STATES initial_state, const TCHAR* name)
+std::shared_ptr<DXBuffer> create_buffer(const void* data, u64 element_size, u64 element_count, bool allow_unordered_access, const TCHAR* name)
 {
-	std::shared_ptr<DXBuffer> buffer = allocate_buffer(element_size, element_count, allow_unordered_access, D3D12_HEAP_TYPE_DEFAULT, initial_state, name);
+	std::shared_ptr<DXBuffer> buffer = allocate_buffer(element_size, element_count, allow_unordered_access, name, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_COMMON);
 
 	if (data)
 	{
@@ -94,9 +94,9 @@ std::shared_ptr<DXBuffer> create_buffer(const void* data, u64 element_size, u64 
 	return buffer;
 }
 
-std::shared_ptr<DXBuffer> create_raytracing_tlas_buffer(u64 total_size, D3D12_RESOURCE_STATES initial_state, const TCHAR* name)
+std::shared_ptr<DXBuffer> create_raytracing_buffer(u64 total_size, const TCHAR* name)
 {
-	std::shared_ptr<DXBuffer> buffer = allocate_buffer(total_size, 1, true, D3D12_HEAP_TYPE_DEFAULT, initial_state, name);
+	std::shared_ptr<DXBuffer> buffer = allocate_buffer(total_size, 1, true, name, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
 	return buffer;
 }
 

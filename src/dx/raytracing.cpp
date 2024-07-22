@@ -48,8 +48,8 @@ void create_raytracing_blas(Mesh& mesh, Arena& arena)
 	info.ResultDataMaxSizeInBytes = align_to<u64>(info.ResultDataMaxSizeInBytes, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
 
-	std::shared_ptr<DXBuffer> scratch = create_buffer(nullptr, 1, (u32)info.ScratchDataSizeInBytes, true, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	std::shared_ptr<DXBuffer> blas = create_buffer(nullptr, 1, (u32)info.ResultDataMaxSizeInBytes, true, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
+	std::shared_ptr<DXBuffer> scratch = create_buffer(nullptr, 1, info.ScratchDataSizeInBytes, true, L"BLAS scratch");
+	std::shared_ptr<DXBuffer> blas = create_raytracing_buffer(info.ResultDataMaxSizeInBytes, L"BLAS");
 
 	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC as_desc = {};
 	as_desc.Inputs = inputs;
@@ -97,16 +97,15 @@ void create_raytracing_tlas(DXRaytracingTLAS& tlas, Range<D3D12_RAYTRACING_INSTA
     info.ResultDataMaxSizeInBytes = align_to<u64>(info.ResultDataMaxSizeInBytes, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
 
-    if (!tlas.tlas || tlas.tlas->size() < info.ResultDataMaxSizeInBytes)
-    {
-        tlas.tlas = create_raytracing_tlas_buffer((u32)info.ResultDataMaxSizeInBytes, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
-    }
-
     if (!tlas.scratch || tlas.scratch->size() < info.ScratchDataSizeInBytes)
     {
-        tlas.scratch = create_buffer(nullptr, 1, (u32)info.ScratchDataSizeInBytes, true, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        tlas.scratch = create_buffer(nullptr, 1, info.ScratchDataSizeInBytes, true, L"TLAS scratch");
     }
 
+	if (!tlas.tlas || tlas.tlas->size() < info.ResultDataMaxSizeInBytes)
+	{
+		tlas.tlas = create_raytracing_buffer(info.ResultDataMaxSizeInBytes, L"TLAS");
+	}
 
 
 	DXAllocation gpu_instances = dx_context.push_to_scratch(instances);

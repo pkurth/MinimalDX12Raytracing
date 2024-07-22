@@ -69,7 +69,7 @@ std::shared_ptr<DXTexture> Renderer::render(const DXRaytracingTLAS& tlas, const 
 {
 	if (!render_target || render_target->width() != render_width || render_target->height() != render_height)
 	{
-		render_target = create_texture_from_data(nullptr, render_width, render_height, DXGI_FORMAT_R8G8B8A8_UNORM, true, L"Main render target");
+		render_target = create_texture(nullptr, render_width, render_height, DXGI_FORMAT_R8G8B8A8_UNORM, true, L"Main render target");
 	}
 
 	D3D12_DISPATCH_RAYS_DESC raytrace_desc;
