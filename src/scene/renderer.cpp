@@ -67,7 +67,7 @@ Renderer::Renderer()
 
 
 
-	CD3DX12_DESCRIPTOR_RANGE radiance_resource_ranges(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 1);
+	CD3DX12_DESCRIPTOR_RANGE radiance_resource_ranges(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, RadianceHitgroupResources::descriptor_count, 0, 1);
 
 	CD3DX12_ROOT_PARAMETER radiance_hitgroup_parameters[] =
 	{
@@ -171,17 +171,21 @@ void Renderer::setup_hitgroup(Range<PerObjectRenderResources> data_for_all_hitgr
 	ASSERT(data_for_all_hitgroups.count == 2);
 
 	// Radiance hitgroup
-	RadianceHitgroupResources& radiance = data_for_all_hitgroups[0].radiance;
-	radiance.material.color = color;
-	DXDescriptorAllocation descriptors = descriptor_heap.allocate(PerObjectRenderResources::descriptor_count);
-	radiance.descriptor_base = descriptors.gpu_base;
+	{
+		RadianceHitgroupResources& radiance = data_for_all_hitgroups[0].radiance;
+		radiance.material.color = color;
+		DXDescriptorAllocation descriptors = descriptor_heap.allocate(PerObjectRenderResources::descriptor_count);
+		radiance.descriptor_base = descriptors.gpu_base;
 
-	create_buffer_srv(descriptors.cpu_at(0), mesh.vertex_buffer.vertex_attributes.buffer->resource, BufferRange{ submesh.base_vertex, submesh.vertex_count, mesh.vertex_buffer.vertex_attributes.buffer->element_size });
-	create_raw_buffer_srv(descriptors.cpu_at(1), mesh.index_buffer.buffer->resource, BufferRange{ submesh.first_index, submesh.index_count, mesh.index_buffer.buffer->element_size });
+		create_buffer_srv(descriptors.cpu_at(0), mesh.vertex_buffer.vertex_attributes.buffer->resource, BufferRange{ submesh.base_vertex, submesh.vertex_count, mesh.vertex_buffer.vertex_attributes.buffer->element_size });
+		create_raw_buffer_srv(descriptors.cpu_at(1), mesh.index_buffer.buffer->resource, BufferRange{ submesh.first_index, submesh.index_count, mesh.index_buffer.buffer->element_size });
+	}
 	
-
-	// Shadow needs no resources currently
-	ShadowHitgroupResources& shadow = data_for_all_hitgroups[1].shadow;
+	// Shadow hitgroup
+	{
+		ShadowHitgroupResources& shadow = data_for_all_hitgroups[1].shadow;
+		// Shadow needs no resources currently
+	}
 }
 
 CD3DX12_GPU_DESCRIPTOR_HANDLE Renderer::create_global_descriptors(const DXDescriptorHeap& descriptor_heap, const DXRaytracingTLAS& tlas)
