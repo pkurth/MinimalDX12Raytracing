@@ -181,9 +181,9 @@ Mesh MeshBuilder::build()
 
 std::tuple<Range<vec3>, Range<VertexAttribute>, Range<MeshBuilder::IndexedTriangle>> MeshBuilder::begin_primitive(u64 vertex_count, u64 triangle_count)
 {
-	// Each submesh index buffer must be aligned to a 16 byte boundary.
-	// This calculation wastes a bit of space, but is easy.
-	triangle_arena.align_next_to(alignof(IndexedTriangle) * 16);
+	// Each submesh index buffer must be aligned to a 16 byte boundary, but also the size of a triangle.
+	// This calculation wastes a bit of space, but is an easy way to accomplish that.
+	triangle_arena.align_next_to(sizeof(IndexedTriangle) * 16);
 
 	Submesh& submesh = submeshes.emplace_back();
 
