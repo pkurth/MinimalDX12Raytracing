@@ -9,9 +9,9 @@ void create_raytracing_blas(Mesh& mesh, Arena& arena)
 {
 	ArenaMarker marker(arena);
 
-	D3D12_RAYTRACING_GEOMETRY_DESC* descs = arena.allocate<D3D12_RAYTRACING_GEOMETRY_DESC>(mesh.submeshes.count);
+	Range<D3D12_RAYTRACING_GEOMETRY_DESC> descs = arena.allocate_range<D3D12_RAYTRACING_GEOMETRY_DESC>(mesh.submeshes.size());
 
-	for (auto [submesh, index] : mesh.submeshes)
+	for (auto [submesh, index] : Range(mesh.submeshes))
 	{
 		D3D12_RAYTRACING_GEOMETRY_DESC& desc = descs[index];
 
@@ -35,8 +35,8 @@ void create_raytracing_blas(Mesh& mesh, Arena& arena)
 	inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 	inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
 
-	inputs.NumDescs = (u32)mesh.submeshes.count;
-	inputs.pGeometryDescs = descs;
+	inputs.NumDescs = (u32)descs.count;
+	inputs.pGeometryDescs = descs.first;
 
 	inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
 

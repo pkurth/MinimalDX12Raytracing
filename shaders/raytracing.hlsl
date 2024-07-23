@@ -151,7 +151,8 @@ void radiance_closest_hit(inout RadiancePayload payload, in BuiltInTriangleInter
 {
 	float3 P = WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
 
-	uint3 tri = load_3x16_bit_indices(indices);
+	//uint3 tri = load_3x16_bit_indices(indices);
+	uint3 tri = load_3x32_bit_indices(indices);
 	
 	float3 N = get_world_normal(tri, attribs);
 	float3 L = -constants.light_direction;

@@ -37,7 +37,7 @@ u64 Scene::total_submesh_count()
 	u64 total_submesh_count = 0;
 	for (SceneObject& obj : objects)
 	{
-		total_submesh_count += obj.mesh.submeshes.count;
+		total_submesh_count += obj.mesh.submeshes.size();
 	}
 	return total_submesh_count;
 }
@@ -58,7 +58,7 @@ void Scene::build_binding_table()
 	DXRaytracingBindingTableBuilder<PerObjectRenderResources> binding_table_builder(binding_table_desc);
 	for (SceneObject& obj : objects)
 	{
-		for (auto [submesh, submesh_index] : obj.mesh.submeshes)
+		for (auto submesh : obj.mesh.submeshes)
 		{
 			// Let renderer initialize the required data
 			renderer.setup_hitgroup(data_for_all_hitgroups, descriptor_heap, obj.mesh, submesh, obj.color);
@@ -88,7 +88,7 @@ void Scene::build_tlas()
 		instance_descs[obj_index] = create_raytracing_instance_desc(obj.mesh.blas, obj.transform, instance_contribution_to_hitgroup_index);
 
 		// Adjust the index to the next object. Since each submesh has an entry for each hitgroup, we need to advance by the product of the two.
-		instance_contribution_to_hitgroup_index += (u32)obj.mesh.submeshes.count * binding_table_desc.hitgroup_count;
+		instance_contribution_to_hitgroup_index += (u32)obj.mesh.submeshes.size() * binding_table_desc.hitgroup_count;
 	}
 
 	create_raytracing_tlas(tlas, instance_descs);
