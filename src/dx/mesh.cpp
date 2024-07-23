@@ -5,12 +5,7 @@
 
 MeshBuilder& MeshBuilder::push_cube_geometry(vec3 center, vec3 radius)
 {
-	Submesh& submesh = begin_primitive();
-
-
-	Range<vec3> vertex_positions = vertex_position_arena.allocate_range<vec3>(24);
-	Range<VertexAttribute> vertex_attributes = vertex_attribute_arena.allocate_range<VertexAttribute>(24);
-	Range<IndexedTriangle> triangles = triangle_arena.allocate_range<IndexedTriangle>(24);
+	auto [vertex_positions, vertex_attributes, triangles] = begin_primitive(24, 12);
 
 	auto push_vertex = [&, push_index = 0u](vec3 position, vec3 normal, vec2 uv) mutable
 	{
@@ -67,18 +62,11 @@ MeshBuilder& MeshBuilder::push_cube_geometry(vec3 center, vec3 radius)
 	push_triangle(20, 21, 22);
 	push_triangle(21, 23, 22);
 
-	submesh.vertex_count = (u32)vertex_positions.count;
-	submesh.index_count = (u32)triangles.count * 3;
-
 	return *this;
 }
 
 MeshBuilder& MeshBuilder::push_sphere_geometry(vec3 center, float radius)
 {
-	Submesh& submesh = begin_primitive();
-
-
-
 	constexpr u32 slices = 15;
 	constexpr u32 rows = 15;
 
@@ -88,9 +76,7 @@ MeshBuilder& MeshBuilder::push_sphere_geometry(vec3 center, float radius)
 	constexpr u32 vertex_count = slices * rows + 2;
 	constexpr u32 triangle_count = 2 * rows * slices;
 
-	Range<vec3> vertex_positions = vertex_position_arena.allocate_range<vec3>(vertex_count);
-	Range<VertexAttribute> vertex_attributes = vertex_attribute_arena.allocate_range<VertexAttribute>(vertex_count);
-	Range<IndexedTriangle> triangles = triangle_arena.allocate_range<IndexedTriangle>(triangle_count);
+	auto [vertex_positions, vertex_attributes, triangles] = begin_primitive(vertex_count, triangle_count);
 
 	auto push_vertex = [&, push_index = 0u](vec3 position) mutable
 	{
@@ -153,10 +139,6 @@ MeshBuilder& MeshBuilder::push_sphere_geometry(vec3 center, float radius)
 	}
 	push_triangle(last_vertex_index - 1 - slices, last_vertex_index - 2, last_vertex_index - 1);
 
-
-	submesh.vertex_count = (u32)vertex_positions.count;
-	submesh.index_count = (u32)triangles.count * 3;
-
 	return *this;
 }
 
@@ -197,16 +179,24 @@ Mesh MeshBuilder::build()
 	return result;
 }
 
-Submesh& MeshBuilder::begin_primitive()
+std::tuple<Range<vec3>, Range<VertexAttribute>, Range<MeshBuilder::IndexedTriangle>> MeshBuilder::begin_primitive(u64 vertex_count, u64 triangle_count)
 {
 	// Each submesh index buffer must be aligned to a 16 byte boundary.
 	// This calculation wastes a bit of space, but is easy.
 	triangle_arena.align_next_to(alignof(IndexedTriangle) * 16);
 
 	Submesh& submesh = submeshes.emplace_back();
+
 	submesh.base_vertex = (u32)(vertex_position_arena.current / sizeof(vec3));
 	submesh.first_index = (u32)(triangle_arena.current / sizeof(IndexType));
-	return submesh;
+	submesh.vertex_count = (u32)vertex_count;
+	submesh.index_count = (u32)triangle_count * 3;
+
+	Range<vec3> vertex_positions = vertex_position_arena.allocate_range<vec3>(vertex_count);
+	Range<VertexAttribute> vertex_attributes = vertex_attribute_arena.allocate_range<VertexAttribute>(vertex_count);
+	Range<IndexedTriangle> triangles = triangle_arena.allocate_range<IndexedTriangle>(triangle_count);
+
+	return { vertex_positions, vertex_attributes, triangles };
 }
 
 Mesh create_cube_mesh(Arena& arena)

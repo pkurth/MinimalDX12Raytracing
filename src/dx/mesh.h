@@ -60,7 +60,7 @@ struct MeshBuilder
 
 
 private:
-	Submesh& begin_primitive();
+	std::tuple<Range<vec3>, Range<VertexAttribute>, Range<IndexedTriangle>> begin_primitive(u64 vertex_count, u64 triangle_count);
 
 	Arena vertex_position_arena;
 	Arena vertex_attribute_arena;
