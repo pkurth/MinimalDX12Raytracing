@@ -7,7 +7,7 @@
 #include <wrl.h>
 
 
-#define NUM_BUFFERED_FRAMES 3
+#define NUM_BUFFERED_FRAMES 2
 
 template <typename T>
 using com = Microsoft::WRL::ComPtr<T>;

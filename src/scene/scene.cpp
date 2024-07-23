@@ -96,7 +96,7 @@ void Scene::build_tlas()
 
 void Camera::update(const Input& input, u32 viewport_width, u32 viewport_height, float dt)
 {
-	const float CAMERA_MOVEMENT_SPEED = 3.f;
+	const float CAMERA_MOVEMENT_SPEED = 1.5f;
 	const float CAMERA_SENSITIVITY = 4.f;
 
 	float aspect = (float)viewport_width / (float)viewport_height;
@@ -118,7 +118,7 @@ void Camera::update(const Input& input, u32 viewport_width, u32 viewport_height,
 	}
 	else if (input.is_mouse_down(MouseButton::Right))
 	{
-		vec3 direction = vec3(-rel_mouse_delta.x * aspect, rel_mouse_delta.y, 0.f) * 1000.f * CAMERA_MOVEMENT_SPEED;
-		center += rotation * direction * dt;
+		vec3 direction = vec3(-rel_mouse_delta.x * aspect, rel_mouse_delta.y, 0.f) * orbit_radius * CAMERA_MOVEMENT_SPEED;
+		center += rotation * direction;
 	}
 }

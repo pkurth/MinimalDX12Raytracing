@@ -8,7 +8,7 @@
 i32 main(i32 argc, char** argv)
 {
 	DXWindow window(TEXT("Minimal DX"), 1280, 720);
-	window.set_vsync(true);
+	//window.set_vsync(true);
 
 
 	
