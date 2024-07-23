@@ -77,5 +77,5 @@ private:
 
 
 
-Mesh create_cube_mesh(Arena& arena);
-Mesh create_sphere_mesh(Arena& arena);
+Mesh create_cube_mesh();
+Mesh create_sphere_mesh();

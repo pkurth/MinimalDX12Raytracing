@@ -2,6 +2,8 @@
 #include "raytracing.h"
 #include "core/math.h"
 
+#include <numeric>
+
 
 MeshBuilder& MeshBuilder::push_cube_geometry(vec3 center, vec3 radius)
 {
@@ -181,9 +183,18 @@ Mesh MeshBuilder::build()
 
 std::tuple<Range<vec3>, Range<VertexAttribute>, Range<MeshBuilder::IndexedTriangle>> MeshBuilder::begin_primitive(u64 vertex_count, u64 triangle_count)
 {
-	// Each submesh index buffer must be aligned to a 16 byte boundary, but also the size of a triangle.
-	// This calculation wastes a bit of space, but is an easy way to accomplish that.
-	triangle_arena.align_next_to(sizeof(IndexedTriangle) * 16);
+	// Each submesh index buffer must be aligned to a 16 byte boundary, but also to the size of a triangle.
+	// We therefore align the arena to the least common multiple of both.
+	constexpr u64 alignment = std::lcm(sizeof(IndexedTriangle), 16);
+	if (triangle_arena.current % alignment != 0)
+	{
+		u64 adjustment = (triangle_arena.current / alignment + 1) * alignment - triangle_arena.current;
+		ASSERT(adjustment < alignment);
+		triangle_arena.allocate(adjustment);
+	}
+
+	ASSERT(triangle_arena.current % sizeof(IndexedTriangle) == 0);
+	ASSERT(triangle_arena.current % 16 == 0);
 
 	Submesh& submesh = submeshes.emplace_back();
 
@@ -199,14 +210,14 @@ std::tuple<Range<vec3>, Range<VertexAttribute>, Range<MeshBuilder::IndexedTriang
 	return { vertex_positions, vertex_attributes, triangles };
 }
 
-Mesh create_cube_mesh(Arena& arena)
+Mesh create_cube_mesh()
 {
 	return MeshBuilder()
 		.push_cube_geometry(vec3(0.f, 0.f, 0.f), vec3(1.f, 1.f, 1.f))
 		.build();
 }
 
-Mesh create_sphere_mesh(Arena& arena)
+Mesh create_sphere_mesh()
 {
 	return MeshBuilder()
 		.push_sphere_geometry(vec3(0.f, 0.f, 0.f), 1.f)

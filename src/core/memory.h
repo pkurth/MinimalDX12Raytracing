@@ -10,6 +10,8 @@
 template <typename T>
 static constexpr T align_to(T offset, T alignment)
 {
+	ASSERT((alignment & (alignment - 1)) == 0);
+
 	T mask = alignment - 1;
 	T misalignment = offset & mask;
 	T adjustment = (misalignment == 0) ? 0 : (alignment - misalignment);

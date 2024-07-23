@@ -12,9 +12,8 @@ i32 main(i32 argc, char** argv)
 
 
 	
-	Arena asset_arena;
-	Mesh cube = create_cube_mesh(asset_arena);
-	Mesh sphere = create_sphere_mesh(asset_arena);
+	Mesh cube = create_cube_mesh();
+	Mesh sphere = create_sphere_mesh();
 
 	Scene scene;
 	scene.push_object(cube, vec3(1.f, 1.f, 0.f), vec3(0.f, 0.f, 0.f), quat(vec3(0.f, 1.f, 0.f), deg2rad(45.f)));
