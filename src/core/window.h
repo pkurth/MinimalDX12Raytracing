@@ -5,6 +5,15 @@
 
 #include <functional>
 
+struct WindowUpdate
+{
+	bool open = false;
+	float delta_time_seconds = 0.f;
+	u64 total_time_milliseconds = 0;
+
+	operator bool() const { return open; }
+};
+
 struct Window
 {
 	Window(const TCHAR* name, u32 client_width, u32 client_height);
@@ -16,7 +25,7 @@ struct Window
 	void operator=(Window&& o) noexcept;
 
 	bool initialized() const { return window_handle != 0; }
-	bool begin_frame(Input& input);
+	WindowUpdate begin_frame(Input& input);
 
 	void set_fullscreen(bool fullscreen);
 
@@ -33,6 +42,11 @@ struct Window
 
 
 private:
+
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> last_timepoint = std::chrono::high_resolution_clock::now();
+	std::chrono::time_point<std::chrono::high_resolution_clock> start_timepoint = last_timepoint;
+
 	WINDOWPLACEMENT window_placement;
 
 	using MouseClickCallback = std::function<void(MouseButton mouse_button, bool down, i32 mouse_x, i32 mouse_y)>;

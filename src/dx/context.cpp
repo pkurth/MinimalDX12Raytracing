@@ -278,20 +278,13 @@ DXContext::~DXContext()
 	command_list_cleanup_thread.join();
 }
 
-float DXContext::begin_frame()
+void DXContext::begin_frame()
 {
 	++frame_id;
 
 	render_graveyard[wrapping_frame_id()].cleanup();
 	copy_graveyard.cleanup();
 	frame_scratch[wrapping_frame_id()].reset();
-
-
-	std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration = now - last_timepoint;
-	float delta_time = (float)duration.count();
-	last_timepoint = now;
-	return delta_time;
 }
 
 void DXContext::flush()

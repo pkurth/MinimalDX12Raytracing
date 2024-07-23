@@ -26,11 +26,11 @@ i32 main(i32 argc, char** argv)
 
 
 	Input input = {};
-	while (window.begin_frame(input))
+	while (WindowUpdate window_update = window.begin_frame(input))
 	{
-		float dt = dx_context.begin_frame();
+		dx_context.begin_frame();
 		
-		scene.update(input, window.client_width, window.client_height, dt);
+		scene.update(input, window.client_width, window.client_height, window_update.delta_time_seconds);
 
 		std::shared_ptr<DXTexture> rendered_scene = scene.render(window.client_width, window.client_height);
 		

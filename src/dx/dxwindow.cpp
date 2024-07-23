@@ -92,13 +92,13 @@ DXWindow::~DXWindow()
 	dx_context.flush();
 }
 
-bool DXWindow::begin_frame(Input& input)
+WindowUpdate DXWindow::begin_frame(Input& input)
 {
-	if (Window::begin_frame(input))
+	if (WindowUpdate update = Window::begin_frame(input))
 	{
 		u32 index = current_backbuffer_index;
 		dx_context.render_queue.wait_for_fence(fence_values[index]);
-		return true;
+		return update;
 	}
 
 	return {};

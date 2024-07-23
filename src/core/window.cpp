@@ -96,7 +96,7 @@ void Window::operator=(Window&& o) noexcept
 	}
 }
 
-bool Window::begin_frame(Input& input)
+WindowUpdate Window::begin_frame(Input& input)
 {
 	mouse_click_callback = [&](MouseButton mouse_button, bool down, i32 mouse_x, i32 mouse_y)
 	{
@@ -118,7 +118,7 @@ bool Window::begin_frame(Input& input)
 	{
 		if (msg.message == WM_QUIT)
 		{
-			return false;
+			return { };
 		}
 
 		TranslateMessage(&msg);
@@ -129,7 +129,15 @@ bool Window::begin_frame(Input& input)
 	mouse_move_callback = {};
 	mouse_scroll_callback = {};
 
-	return initialized();
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> now = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> delta = now - last_timepoint;
+	float delta_time = (float)delta.count();
+	last_timepoint = now;
+
+	u64 total_runtime = std::chrono::duration_cast<std::chrono::milliseconds>(now - start_timepoint).count();
+
+	return { initialized(), delta_time, total_runtime };
 }
 
 void Window::set_fullscreen(bool fullscreen)
@@ -215,7 +223,7 @@ static LRESULT CALLBACK window_callback(HWND hwnd, UINT msg, WPARAM w_param, LPA
 	{
 		if (window && window->initialized() && window->mouse_scroll_callback)
 		{
-			float scroll = GET_WHEEL_DELTA_WPARAM(w_param) / WHEEL_DELTA;
+			float scroll = (float)GET_WHEEL_DELTA_WPARAM(w_param) / WHEEL_DELTA;
 			window->mouse_scroll_callback(scroll);
 		}
 	};

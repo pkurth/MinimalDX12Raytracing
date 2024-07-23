@@ -105,7 +105,7 @@ void Camera::update(const Input& input, u32 viewport_width, u32 viewport_height,
 
 	if (input.mouse_scroll() != 0.f)
 	{
-		orbit_radius -= input.mouse_scroll();
+		orbit_radius = clamp(orbit_radius - input.mouse_scroll(), 0.5f, 50.f);
 	}
 
 	if (input.is_mouse_down(MouseButton::Left))
